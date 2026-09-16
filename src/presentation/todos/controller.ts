@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
+import { prisma } from "../../data/postgres";   
 
-
-const todos = [
+/* const todos = [
     { id: 1, text: 'Buy milk', completedAt: new Date() },
     { id: 2, text: 'Buy bread', completedAt: null },
     { id: 3, text: 'Buy eggs', completedAt: new Date() }
 ]
-
+ */
 
 export class TodosController {
 
@@ -16,6 +16,9 @@ export class TodosController {
     }
 
     public async getTodos(req: Request, res: Response) {
+       // return res.json(todos);
+
+        const todos = await prisma.todo.findMany();
         return res.json(todos);
     }
 
@@ -29,7 +32,11 @@ export class TodosController {
             return res.status(400).json({ message: 'Invalid ID' });
         }
         
-        const todo = todos.find(todo => todo.id === id)
+        const todo = await prisma.todo.findUnique({
+            where: {
+                id: id
+            }
+        })
 
         if (!todo) {
             return res.status(404).json({ message: 'Todo not found' });
@@ -44,17 +51,21 @@ export class TodosController {
 
 
     public async createTodo(req: Request, res: Response) {
-        const {text} = req.body;
+        const {text , completedAt} = req.body;
 
         if (!text) {
             return res.status(400).json({ message: 'Text is required' });
         }
 
-        const newTodo = { id: todos.length + 1, text, completedAt: new Date() }
+        const todo =  await prisma.todo.create({
+            data: {
+                text: text,
+                completedAt: completedAt || null
+            }
+        })
+      
 
-        todos.push(newTodo);
-
-        res.json({ message: 'Todo created successfully' , todo: newTodo });
+        res.json({ message: 'Todo created successfully' , todo });
     }
 
 
@@ -65,12 +76,12 @@ export class TodosController {
             return res.status(400).json({ message: 'Invalid ID' });
         }
 
-        const todo = todos.find(todo => todo.id === id)
+        /* const todo = todos.find(todo => todo.id === id)
 
         if (!todo) {
             return res.status(404).json({ message: 'Todo not found' });
         }
-
+ */
 
         const { text , completedAt } = req.body;
 
@@ -78,9 +89,21 @@ export class TodosController {
             return res.status(400).json({ message: 'Text is required' });
         }
 
-        todo.text = text || todo.text;
+      /*   todo.text = text || todo.text;
         (completedAt === null) ? todo.completedAt = null : todo.completedAt = new Date(completedAt || todo.completedAt);
 
+
+        res.json({ message: 'Todo updated successfully', todo }); */
+
+        const todo = await prisma.todo.update({
+            where: {
+                id: id
+            },
+            data:{
+                text: text,
+                completedAt: completedAt || null
+            }
+        })
 
         res.json({ message: 'Todo updated successfully', todo });
     }
@@ -93,13 +116,20 @@ export class TodosController {
             return res.status(400).json({ message: 'Invalid ID' });
         }
 
-        const index = todos.find(todo => todo.id === id)
+      /*   const index = todos.find(todo => todo.id === id)
 
         if (!index) {
             return res.status(404).json({ message: 'Todo not found' });
         }
 
-        todos.splice(todos.indexOf(index), 1);
+        todos.splice(todos.indexOf(index), 1); */
+
+
+        await prisma.todo.delete({
+            where: {
+                id: id
+            }
+        })
 
         res.json({ message: 'Todo deleted successfully' });
     }
