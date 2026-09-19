@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../../data/postgres";   
-import { CreateTodoDto, UpdateTodoDto } from "../../domain/dtos/todos";
+import { CreateTodoDto, UpdateTodoDto } from "../../domain/dtos";
 
 /* const todos = [
     { id: 1, text: 'Buy milk', completedAt: new Date() },
